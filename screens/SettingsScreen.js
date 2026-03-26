@@ -1,4 +1,3 @@
-// screens/SettingsScreen.jsx
 import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { Text, Button, Card, Switch, useTheme } from "react-native-paper";

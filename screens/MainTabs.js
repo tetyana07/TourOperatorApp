@@ -1,4 +1,3 @@
-// screens/MainTabs.jsx
 import React, { useState, useEffect } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
@@ -23,7 +22,7 @@ export default function MainTabs() {
   const [selectedTour, setSelectedTour] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  // ==================== ПОВНИЙ МАСИВ З 20 ТУРІВ ====================
+ 
   const initialTours = [
     {
       id: 1,
@@ -171,7 +170,7 @@ export default function MainTabs() {
     setTours(initialTours);
   }, []);
 
-  // AsyncStorage для favorites
+ 
   useEffect(() => {
     const loadFavorites = async () => {
       const saved = await AsyncStorage.getItem("favorites");

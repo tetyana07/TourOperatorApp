@@ -1,14 +1,12 @@
-// App.js
 import React, { useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { PaperProvider, MD3DarkTheme, MD3LightTheme } from "react-native-paper";
 import { StatusBar, ActivityIndicator, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
 import LoginScreen from "./screens/LoginScreen";
 import MainTabs from "./screens/MainTabs";
-import { AppContext } from "./context/AppContext";   // ← Імпорт контексту
+import { AppContext } from "./context/AppContext";  
 
 const Stack = createNativeStackNavigator();
 
@@ -18,7 +16,7 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ==================== КАСТОМНА ТЕМА ====================
+  
   const customDarkTheme = {
     ...MD3DarkTheme,
     colors: {
@@ -45,7 +43,7 @@ export default function App() {
 
   const paperTheme = darkTheme ? customDarkTheme : MD3LightTheme;
 
-  // Завантаження даних з AsyncStorage
+  
   useEffect(() => {
     const loadState = async () => {
       try {
@@ -95,7 +93,7 @@ export default function App() {
     await AsyncStorage.removeItem("user");
   };
 
-  // Значення, яке буде доступне через useApp() в усьому додатку
+  
   const contextValue = {
     user,
     darkTheme,
@@ -121,7 +119,7 @@ export default function App() {
             ) : (
               <Stack.Screen 
                 name="Main" 
-                component={MainTabs}   // ← Змінили з children на component (чистіше)
+                component={MainTabs}   
               />
             )}
           </Stack.Navigator>

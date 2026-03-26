@@ -1,4 +1,3 @@
-// screens/LoginScreen.jsx
 import React, { useState } from "react";
 import { View, Alert, StyleSheet } from "react-native";
 import { TextInput, Button, Text, Card, useTheme } from "react-native-paper";

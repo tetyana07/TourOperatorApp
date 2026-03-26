@@ -1,4 +1,3 @@
-// screens/TourCard.jsx
 import React, { useState } from "react";
 import { StyleSheet, Pressable } from "react-native";
 import { Card, Text, IconButton, useTheme } from "react-native-paper";

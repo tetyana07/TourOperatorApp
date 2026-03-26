@@ -1,4 +1,3 @@
-// screens/FavoritesScreen.jsx
 import React from "react";
 import { FlatList, StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
@@ -7,7 +6,7 @@ import { useApp } from "../context/AppContext";
 
 export default function FavoritesScreen({ tours = [], openTour, toggleFavorite }) {
   const theme = useTheme();
-  const { user } = useApp(); // якщо знадобиться в майбутньому
+  const { user } = useApp(); 
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>

@@ -1,4 +1,3 @@
-// screens/ToursScreen.jsx
 import React, { useState } from "react";
 import { FlatList, StyleSheet, View } from "react-native";
 import { TextInput, Chip, Text, useTheme } from "react-native-paper";

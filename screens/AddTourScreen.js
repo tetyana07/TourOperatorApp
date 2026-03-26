@@ -1,4 +1,3 @@
-// screens/AddTourScreen.jsx
 import React from "react";
 import { ScrollView, StyleSheet, Alert } from "react-native";
 import { TextInput, Button, Text, useTheme } from "react-native-paper";

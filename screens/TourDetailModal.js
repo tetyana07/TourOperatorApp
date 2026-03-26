@@ -1,4 +1,3 @@
-// screens/TourDetailModal.jsx
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { Modal, Text, Button, IconButton, Card, useTheme } from "react-native-paper";
