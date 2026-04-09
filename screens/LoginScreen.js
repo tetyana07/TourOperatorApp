@@ -1,48 +1,84 @@
 import React, { useState } from "react";
-import { View, Alert, StyleSheet } from "react-native";
+import { View, StyleSheet, Alert } from "react-native";
 import { TextInput, Button, Text, Card, useTheme } from "react-native-paper";
+import { useApp } from "../context/AppContext";
 
-const users = [
-  { username: "admin", password: "1234", name: "Адміністратор" },
-  { username: "user", password: "1111", name: "Користувач" },
-  { username: "student", password: "password", name: "Студент" },
-];
-
-export default function LoginScreen({ onLogin }) {
+export default function LoginScreen() {
   const theme = useTheme();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const { handleLogin } = useApp();
 
-  const handleLogin = () => {
-    const foundUser = users.find(
-      (u) => u.username === username.trim() && u.password === password
-    );
-    if (foundUser) {
-      onLogin(foundUser);
-    } else {
-      Alert.alert("Помилка", "Невірний логін або пароль!");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const BEECEPTOR_URL = "https://tour-app-login.free.beeceptor.com";
+
+  const handleSubmit = async () => {
+    if (!email || !password) {
+      Alert.alert("Помилка", "Введіть email та пароль");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${BEECEPTOR_URL}/api/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          email: email.trim(), 
+          password: password.trim() 
+        }),
+      });
+
+      
+      const data = await response.json();
+
+      console.log("Відповідь від Beeceptor:", data); 
+
+      if (response.ok && data.success) {
+        const user = {
+          id: Date.now(),
+          name: email.split("@")[0].charAt(0).toUpperCase() + email.split("@")[0].slice(1),
+          username: email,
+          token: data.token || "mock-token-12345",
+        };
+
+        handleLogin(user);
+        Alert.alert("Успіх", `Вітаємо, ${user.name}!`);
+      } else {
+        Alert.alert(
+          "Помилка входу", 
+          data.message || "Невірний email або пароль"
+        );
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      
+      Alert.alert(
+        "Помилка підключення"
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
+    <View style={styles.container}>
+      <Card style={styles.card}>
         <Card.Content>
-          <Text 
-            variant="headlineMedium" 
-            style={[styles.title, { color: theme.colors.onSurface }]}
-          >
-            Вхід у додаток
+          <Text variant="headlineMedium" style={styles.title}>
+            Вхід
           </Text>
 
           <TextInput
-            label="Логін"
-            value={username}
-            onChangeText={setUsername}
+            label="Email"
+            value={email}
+            onChangeText={setEmail}
             mode="outlined"
             style={styles.input}
+            keyboardType="email-address"
             autoCapitalize="none"
-            textColor={theme.colors.onSurface}
           />
 
           <TextInput
@@ -52,23 +88,19 @@ export default function LoginScreen({ onLogin }) {
             secureTextEntry
             mode="outlined"
             style={styles.input}
-            textColor={theme.colors.onSurface}
           />
 
           <Button 
             mode="contained" 
-            onPress={handleLogin} 
+            onPress={handleSubmit} 
             style={styles.button}
+            loading={loading}
+            disabled={loading}
           >
-            Увійти
+            {loading ? "Вхід..." : "Увійти"}
           </Button>
 
-          <Text style={[styles.hint, { color: theme.colors.onSurfaceVariant }]}>
-            Тестові дані:{"\n"}
-            admin / 1234{"\n"}
-            user / 1111{"\n"}
-            student / password
-          </Text>
+      
         </Card.Content>
       </Card>
     </View>
@@ -76,29 +108,10 @@ export default function LoginScreen({ onLogin }) {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    justifyContent: "center", 
-    padding: 20 
-  },
-  card: { 
-    padding: 10, 
-    elevation: 4 
-  },
-  title: { 
-    textAlign: "center", 
-    marginBottom: 20 
-  },
-  input: { 
-    marginBottom: 12 
-  },
-  button: { 
-    marginTop: 10, 
-    paddingVertical: 6 
-  },
-  hint: { 
-    marginTop: 25, 
-    textAlign: "center", 
-    lineHeight: 22 
-  },
+  container: { flex: 1, justifyContent: "center", padding: 20 },
+  card: { padding: 10, elevation: 4 },
+  title: { textAlign: "center", marginBottom: 24 },
+  input: { marginBottom: 12 },
+  button: { marginTop: 20, paddingVertical: 8 },
+  hint: { marginTop: 30, textAlign: "center", color: "#666", lineHeight: 22 },
 });

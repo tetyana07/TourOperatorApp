@@ -9,6 +9,8 @@ import ToursScreen from "./ToursScreen";
 import FavoritesScreen from "./FavoritesScreen";
 import AddTourScreen from "./AddTourScreen";
 import SettingsScreen from "./SettingsScreen";
+import PostsScreen from "./PostsScreen";
+
 import { useApp } from "../context/AppContext";
 
 const Tab = createBottomTabNavigator();
@@ -22,7 +24,7 @@ export default function MainTabs() {
   const [selectedTour, setSelectedTour] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
 
- 
+  
   const initialTours = [
     {
       id: 1,
@@ -166,11 +168,11 @@ export default function MainTabs() {
     },
   ];
 
+
   useEffect(() => {
     setTours(initialTours);
   }, []);
 
- 
   useEffect(() => {
     const loadFavorites = async () => {
       const saved = await AsyncStorage.getItem("favorites");
@@ -211,7 +213,6 @@ export default function MainTabs() {
           headerStyle: { 
             backgroundColor: darkTheme ? "#0a0a0a" : "#6200ee" 
           },
-          
           headerTintColor: "white",
           tabBarStyle: {
             backgroundColor: darkTheme ? "#121212" : "#ffffff",
@@ -247,6 +248,14 @@ export default function MainTabs() {
             />
           )}
         </Tab.Screen>
+
+        <Tab.Screen
+          name="Пости"
+          component={PostsScreen}
+          options={{
+            tabBarIcon: ({ color, size }) => <Ionicons name="newspaper-outline" size={size} color={color} />,
+          }}
+        />
 
         <Tab.Screen
           name="Додати тур"
