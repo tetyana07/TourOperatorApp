@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from "react-native-paper";
 
 import TourDetailModal from "./TourDetailModal";
@@ -16,15 +15,23 @@ import { useApp } from "../context/AppContext";
 const Tab = createBottomTabNavigator();
 
 export default function MainTabs() {
-  const { darkTheme } = useApp();
   const theme = useTheme();
 
-  const [tours, setTours] = useState([]);
-  const [favorites, setFavorites] = useState([]);
+  const {
+    darkTheme,
+    tours,
+    setTours,
+    favorites,
+    toggleFavorite,
+    user,
+  } = useApp();
+
   const [selectedTour, setSelectedTour] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  
+ 
+  const userFavorites = user ? favorites[user.username] || [] : [];
+
   const initialTours = [
     {
       id: 1,
@@ -168,40 +175,32 @@ export default function MainTabs() {
     },
   ];
 
-
+ 
   useEffect(() => {
-    setTours(initialTours);
+    if (tours.length === 0) {
+      setTours(initialTours);
+    }
   }, []);
-
-  useEffect(() => {
-    const loadFavorites = async () => {
-      const saved = await AsyncStorage.getItem("favorites");
-      if (saved) setFavorites(JSON.parse(saved));
-    };
-    loadFavorites();
-  }, []);
-
-  useEffect(() => {
-    AsyncStorage.setItem("favorites", JSON.stringify(favorites));
-  }, [favorites]);
 
   const openTour = (tour) => {
     setSelectedTour(tour);
     setModalVisible(true);
   };
 
-  const toggleFavorite = (id) => {
-    setFavorites((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
-  };
-
   const deleteTour = () => {
-    if (selectedTour) {
-      setTours((prev) => prev.filter((t) => t.id !== selectedTour.id));
-      setFavorites((prev) => prev.filter((id) => id !== selectedTour.id));
-      setModalVisible(false);
+    if (!selectedTour) return;
+
+    const id = selectedTour.id;
+
+    setTours((prev) => prev.filter((t) => t.id !== id));
+
+    
+    if (user) {
+      toggleFavorite(id); 
     }
+
+    setModalVisible(false);
+    setSelectedTour(null);
   };
 
   return (
@@ -210,8 +209,8 @@ export default function MainTabs() {
         screenOptions={{
           tabBarActiveTintColor: theme.colors.primary,
           tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
-          headerStyle: { 
-            backgroundColor: darkTheme ? "#0a0a0a" : "#6200ee" 
+          headerStyle: {
+            backgroundColor: darkTheme ? "#0a0a0a" : "#6200ee",
           },
           headerTintColor: "white",
           tabBarStyle: {
@@ -219,68 +218,89 @@ export default function MainTabs() {
           },
         }}
       >
+        
         <Tab.Screen
           name="Тури"
-          children={() => (
-            <ToursScreen 
-              tours={tours} 
-              openTour={openTour} 
-              toggleFavorite={toggleFavorite} 
-              favorites={favorites} 
-            />
-          )}
           options={{
-            tabBarIcon: ({ color, size }) => <Ionicons name="compass-outline" size={size} color={color} />,
-          }}
-        />
-
-        <Tab.Screen
-          name="Обране"
-          options={{
-            tabBarIcon: ({ color }) => <Ionicons name="heart-outline" size={24} color={color} />,
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="compass-outline" size={size} color={color} />
+            ),
           }}
         >
           {() => (
-            <FavoritesScreen 
-              tours={tours.filter((t) => favorites.includes(t.id))} 
-              openTour={openTour} 
-              toggleFavorite={toggleFavorite} 
+            <ToursScreen
+              tours={tours}
+              openTour={openTour}
+              toggleFavorite={toggleFavorite}
+              favorites={userFavorites}
             />
           )}
         </Tab.Screen>
 
+     
+        <Tab.Screen
+          name="Обране"
+          options={{
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="heart-outline" size={24} color={color} />
+            ),
+          }}
+        >
+          {() => (
+            <FavoritesScreen
+              tours={tours.filter((t) => userFavorites.includes(t.id))}
+              openTour={openTour}
+              toggleFavorite={toggleFavorite}
+            />
+          )}
+        </Tab.Screen>
+
+        
         <Tab.Screen
           name="Пости"
           component={PostsScreen}
           options={{
-            tabBarIcon: ({ color, size }) => <Ionicons name="newspaper-outline" size={size} color={color} />,
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="newspaper-outline" size={size} color={color} />
+            ),
           }}
         />
 
+       
         <Tab.Screen
-          name="Додати тур"
+          name="Додати"
           options={{
-            tabBarIcon: ({ color }) => <Ionicons name="add-circle-outline" size={24} color={color} />,
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="add-circle-outline" size={24} color={color} />
+            ),
           }}
         >
           {() => <AddTourScreen setTours={setTours} />}
         </Tab.Screen>
 
+        
         <Tab.Screen
           name="Налаштування"
+          component={SettingsScreen}
           options={{
-            tabBarIcon: ({ color }) => <Ionicons name="settings-outline" size={24} color={color} />,
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="settings-outline" size={24} color={color} />
+            ),
           }}
-        >
-          {() => <SettingsScreen />}
-        </Tab.Screen>
+        />
       </Tab.Navigator>
 
+      
       <TourDetailModal
         visible={modalVisible}
         tour={selectedTour}
-        onClose={() => setModalVisible(false)}
-        isFavorite={selectedTour ? favorites.includes(selectedTour.id) : false}
+        onClose={() => {
+          setModalVisible(false);
+          setSelectedTour(null);
+        }}
+        isFavorite={
+          selectedTour ? userFavorites.includes(selectedTour.id) : false
+        }
         toggleFavorite={toggleFavorite}
         onDelete={deleteTour}
       />

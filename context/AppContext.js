@@ -6,9 +6,7 @@ export const useApp = () => {
   const context = useContext(AppContext);
 
   if (!context) {
-    throw new Error(
-      "useApp must be used within an AppContext.Provider"
-    );
+    throw new Error("useApp повинен використовуватись лише в межах AppContext.Provider");
   }
 
   return context;

@@ -11,12 +11,7 @@ import MainTabs from "./screens/MainTabs";
 import TourDetailScreen from "./screens/TourDetailScreen";
 import { AppContext } from "./context/AppContext";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: { staleTime: 5 * 60 * 1000, cacheTime: 10 * 60 * 1000 },
-  },
-});
-
+const queryClient = new QueryClient();
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -25,49 +20,54 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const customDarkTheme = {
-    ...MD3DarkTheme,
-    colors: {
-      ...MD3DarkTheme.colors,
-      primary: "#c084fc",
-      background: "#0a0a0a",
-      onBackground: "#f0f0f0",
-      surface: "#121212",
-      onSurface: "#e0e0e0",
-    },
-  };
+  const [tours, setTours] = useState([]);
+  const [favorites, setFavorites] = useState({});
+  const [sessionOnly, setSessionOnly] = useState(false);
 
-  const paperTheme = darkTheme ? customDarkTheme : MD3LightTheme;
+  const theme = darkTheme ? MD3DarkTheme : MD3LightTheme;
 
+  
   useEffect(() => {
-    const loadState = async () => {
+    const load = async () => {
       try {
         const savedUser = await AsyncStorage.getItem("user");
-        const savedTheme = await AsyncStorage.getItem("darkTheme");
+        const savedFav = await AsyncStorage.getItem("favorites");
+        const savedTheme = await AsyncStorage.getItem("theme");
+
         if (savedUser) {
           setUser(JSON.parse(savedUser));
           setIsLoggedIn(true);
         }
+
+        if (savedFav) setFavorites(JSON.parse(savedFav));
         if (savedTheme !== null) setDarkTheme(JSON.parse(savedTheme));
+
       } catch (e) {
-        console.log("Помилка завантаження:", e);
+        console.log("Load error:", e);
       } finally {
         setLoading(false);
       }
     };
-    loadState();
+
+    load();
   }, []);
 
-  const toggleTheme = async () => {
-    const newTheme = !darkTheme;
-    setDarkTheme(newTheme);
-    await AsyncStorage.setItem("darkTheme", JSON.stringify(newTheme));
-  };
 
-  const handleLogin = async (loggedUser) => {
-    setUser(loggedUser);
+  useEffect(() => {
+    if (!sessionOnly) {
+      AsyncStorage.setItem("favorites", JSON.stringify(favorites));
+    }
+  }, [favorites]);
+
+  useEffect(() => {
+    AsyncStorage.setItem("theme", JSON.stringify(darkTheme));
+  }, [darkTheme]);
+
+  
+  const handleLogin = async (u) => {
+    setUser(u);
     setIsLoggedIn(true);
-    await AsyncStorage.setItem("user", JSON.stringify(loggedUser));
+    await AsyncStorage.setItem("user", JSON.stringify(u));
   };
 
   const handleLogout = async () => {
@@ -76,28 +76,69 @@ export default function App() {
     await AsyncStorage.removeItem("user");
   };
 
-  const contextValue = {
-    user,
-    darkTheme,
-    toggleTheme,
-    onLogout: handleLogout,
-    handleLogin,
+  
+  const toggleFavorite = (id) => {
+    if (!user) return;
+
+    setFavorites((prev) => {
+      const userFavs = prev[user.username] || [];
+
+      const updated = userFavs.includes(id)
+        ? userFavs.filter((i) => i !== id)
+        : [...userFavs, id];
+
+      return {
+        ...prev,
+        [user.username]: updated,
+      };
+    });
   };
 
+  
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#0a0a0a" }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#0a0a0a",
+        }}
+      >
         <ActivityIndicator size="large" color="#c084fc" />
       </View>
     );
   }
 
+  
+  const contextValue = {
+    user,
+    handleLogin,
+    onLogout: handleLogout,
+
+    darkTheme,
+    toggleTheme: () => setDarkTheme((prev) => !prev),
+
+    tours,
+    setTours,
+
+    favorites,
+    setFavorites,
+    toggleFavorite,
+
+    sessionOnly,
+    setSessionOnly,
+  };
+
   return (
     <AppContext.Provider value={contextValue}>
       <QueryClientProvider client={queryClient}>
-        <PaperProvider theme={paperTheme}>
-          <StatusBar barStyle={darkTheme ? "light-content" : "dark-content"} backgroundColor={darkTheme ? "#0a0a0a" : "#6200ee"} />
-          
+        <PaperProvider theme={theme}>
+          <StatusBar
+            barStyle={darkTheme ? "light-content" : "dark-content"}
+            backgroundColor={darkTheme ? "#0a0a0a" : "#6200ee"}
+          />
+
           <NavigationContainer>
             <Stack.Navigator screenOptions={{ headerShown: false }}>
               {!isLoggedIn ? (
@@ -105,8 +146,8 @@ export default function App() {
               ) : (
                 <>
                   <Stack.Screen name="Main" component={MainTabs} />
-                  <Stack.Screen 
-                    name="TourDetail" 
+                  <Stack.Screen
+                    name="TourDetail"
                     component={TourDetailScreen}
                     options={{ headerShown: true, title: "Деталі туру" }}
                   />
