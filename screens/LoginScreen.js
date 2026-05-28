@@ -3,7 +3,6 @@ import { View, StyleSheet, Alert } from "react-native";
 import { TextInput, Button, Text, Checkbox } from "react-native-paper";
 import { useApp } from "../context/AppContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 
 export default function LoginScreen() {
@@ -18,7 +17,7 @@ export default function LoginScreen() {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
 
-  const [loading, setLoading] = useState(false); 
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -53,25 +52,29 @@ export default function LoginScreen() {
 
     if (e || p) return;
 
-    try {
-      setLoading(true);
+    setLoading(true);
 
+    try {
       const res = await fetch(
         "https://tour-app-login.free.beeceptor.com/api/login",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+          },
           body: JSON.stringify({ email, password }),
         }
       );
 
       const data = await res.json().catch(() => ({}));
 
-     
+      console.log("Response:", res.status, data);
+
       if (!res.ok || !data.success) {
         Alert.alert(
-          "Помилка",
-          data.message || "Невірний email або пароль"
+          "Помилка входу",
+          data.message || "Невірний email або пароль\n\nСпробуй: test@test.com / 123456"
         );
         return;
       }
@@ -82,7 +85,6 @@ export default function LoginScreen() {
         username: email,
       };
 
-      
       if (rememberMe) {
         await AsyncStorage.setItem("rememberedEmail", email);
       } else {
@@ -93,9 +95,10 @@ export default function LoginScreen() {
       Alert.alert("Успіх", "Вхід виконано");
 
     } catch (error) {
+      console.error("Login error:", error);
       Alert.alert(
-        "Помилка мережі",
-        "Немає інтернету або сервер недоступний"
+        "Проблема з'єднання",
+        "Не вдалося підключитися до сервера.\n\nПеревір інтернет або спробуй пізніше.\n\n(Beeceptor часто нестабільний)"
       );
     } finally {
       setLoading(false);
@@ -104,7 +107,7 @@ export default function LoginScreen() {
 
   return (
     <LinearGradient colors={["#1e1e2f", "#2a2a40"]} style={styles.container}>
-      <BlurView intensity={40} tint="dark" style={styles.glass}>
+      <View style={styles.glass}>
         <Text style={styles.title}>Вхід</Text>
 
         <TextInput
@@ -140,19 +143,23 @@ export default function LoginScreen() {
             status={rememberMe ? "checked" : "unchecked"}
             onPress={() => setRememberMe(!rememberMe)}
           />
-          <Text style={{ color: "#ddd" }}>Запам’ятати мене</Text>
+          <Text style={{ color: "#ddd" }}>Запам'ятати мене</Text>
         </View>
 
         <Button
           mode="contained"
           onPress={handleSubmit}
           style={styles.button}
-          loading={loading}   
-          disabled={loading}  
+          loading={loading}
+          disabled={loading}
         >
           Увійти
         </Button>
-      </BlurView>
+
+        <Text style={{ color: "#888", textAlign: "center", marginTop: 15, fontSize: 12 }}>
+          Beeceptor: test@test.com / 123456
+        </Text>
+      </View>
     </LinearGradient>
   );
 }
@@ -163,7 +170,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   glass: {
     width: "90%",
     padding: 20,
@@ -172,30 +178,25 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.15)",
   },
-
   title: {
     color: "#fff",
     fontSize: 24,
     textAlign: "center",
     marginBottom: 20,
   },
-
   input: {
     marginBottom: 10,
     backgroundColor: "rgba(255,255,255,0.08)",
   },
-
   button: {
     marginTop: 15,
     borderRadius: 10,
   },
-
   error: {
     color: "#ff6b6b",
     fontSize: 12,
     marginBottom: 5,
   },
-
   row: {
     flexDirection: "row",
     alignItems: "center",

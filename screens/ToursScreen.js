@@ -5,7 +5,6 @@ import {
   Chip,
   Text,
   useTheme,
-  SegmentedButtons,
 } from "react-native-paper";
 import TourCard from "./TourCard";
 
@@ -26,7 +25,6 @@ export default function ToursScreen({
   const filteredTours = useMemo(() => {
     let result = [...tours];
 
-   
     result = result.filter((tour) => {
       const matchesSearch =
         tour.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -38,24 +36,15 @@ export default function ToursScreen({
       return matchesSearch && matchesCountry;
     });
 
-    
     switch (sortType) {
       case "price_asc":
         return result.sort((a, b) => a.price - b.price);
-
       case "price_desc":
         return result.sort((a, b) => b.price - a.price);
-
       case "name_asc":
-        return result.sort((a, b) =>
-          a.title.localeCompare(b.title, "uk")
-        );
-
+        return result.sort((a, b) => a.title.localeCompare(b.title, "uk"));
       case "name_desc":
-        return result.sort((a, b) =>
-          b.title.localeCompare(a.title, "uk")
-        );
-
+        return result.sort((a, b) => b.title.localeCompare(a.title, "uk"));
       default:
         return result;
     }
@@ -68,7 +57,6 @@ export default function ToursScreen({
         { backgroundColor: theme.colors.background },
       ]}
     >
-     
       <TextInput
         label="Пошук турів..."
         value={search}
@@ -78,14 +66,10 @@ export default function ToursScreen({
         left={<TextInput.Icon icon="magnify" />}
       />
 
-   
       <View style={styles.section}>
-        <Text
-          style={[styles.sectionTitle, { color: theme.colors.onSurface }]}
-        >
+        <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
           🌍 Країни
         </Text>
-
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -117,69 +101,65 @@ export default function ToursScreen({
         />
       </View>
 
-     
-     <View style={styles.section}>
-  <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
-    🔄 Сортування
-  </Text>
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
+          🔄 Сортування
+        </Text>
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={[
+            { label: "За замовч.", value: "none" },
+            { label: "💰 Дешеві", value: "price_asc" },
+            { label: "💎 Дорогі", value: "price_desc" },
+            { label: "🔤 А-Я", value: "name_asc" },
+            { label: "🔤 Я-А", value: "name_desc" },
+          ]}
+          keyExtractor={(item) => item.value}
+          renderItem={({ item }) => (
+            <Chip
+              selected={sortType === item.value}
+              onPress={() => setSortType(item.value)}
+              style={[
+                styles.chip,
+                {
+                  backgroundColor:
+                    sortType === item.value
+                      ? theme.colors.primary
+                      : theme.colors.surfaceVariant,
+                },
+              ]}
+              textStyle={{
+                color:
+                  sortType === item.value
+                    ? theme.colors.onPrimary
+                    : theme.colors.onSurface,
+              }}
+            >
+              {item.label}
+            </Chip>
+          )}
+        />
+      </View>
 
-  <FlatList
-    horizontal
-    showsHorizontalScrollIndicator={false}
-    data={[
-      { label: "За замовч.", value: "none" },
-      { label: "💰 Дешеві", value: "price_asc" },
-      { label: "💎 Дорогі", value: "price_desc" },
-      { label: "🔤 А-Я", value: "name_asc" },
-      { label: "🔤 Я-А", value: "name_desc" },
-    ]}
-    keyExtractor={(item) => item.value}
-    renderItem={({ item }) => (
-      <Chip
-        selected={sortType === item.value}
-        onPress={() => setSortType(item.value)}
-        style={[
-          styles.chip,
-          {
-            backgroundColor:
-              sortType === item.value
-                ? theme.colors.primary
-                : theme.colors.surfaceVariant,
-          },
-        ]}
-        textStyle={{
-          color:
-            sortType === item.value
-              ? theme.colors.onPrimary
-              : theme.colors.onSurface,
-        }}
-      >
-        {item.label}
-      </Chip>
-    )}
-  />
-</View>
-
-     
+      {}
       <FlatList
         data={filteredTours}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
+        renderItem={({ item, index }) => (
           <TourCard
             tour={item}
             openTour={openTour}
             toggleFavorite={toggleFavorite}
             isFavorite={favorites.includes(item.id)}
+            index={index}
           />
         )}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <Text
-            style={[
-              styles.empty,
-              { color: theme.colors.onSurfaceVariant },
-            ]}
+            style={[styles.empty, { color: theme.colors.onSurfaceVariant }]}
           >
             😕 Тури не знайдено
           </Text>
@@ -191,29 +171,23 @@ export default function ToursScreen({
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-
   search: { margin: 16 },
-
   section: {
     paddingHorizontal: 16,
     marginBottom: 12,
   },
-
   sectionTitle: {
     marginBottom: 8,
     fontSize: 16,
     fontWeight: "600",
   },
-
   chip: {
     marginRight: 8,
     borderRadius: 20,
   },
-
   content: {
     paddingBottom: 30,
   },
-
   empty: {
     textAlign: "center",
     marginTop: 100,
